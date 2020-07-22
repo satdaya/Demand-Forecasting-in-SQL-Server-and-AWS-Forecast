@@ -1,4 +1,18 @@
-The first step requires extracting the shipped data from the SQL Server database feeding the ERP.  
+The first step requires extracting the shipped data from the SQL Server database feeding the ERP.  Often the forecasting hierarchy will be determined by the operations and SIOP teams, and often is not in the ERP. In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A sku hierarchy.
+
+  The first priority was obtaining both historical order and historical shipped data by unit and gross $. The company ships approximately 85,000 sku's across approximately 2,500 unique billable customers. If every customer ordered every sku, we would not to generate 212,500,000 unique forecasts for each month, or 2.55 billion forecasts for a 12 month view. This is prohibitively expensive in compute and $.  So the first task: consolidate customers into a hierarchy.  
+  
+ **Key customer hierarchy - level 1:** Top customers (those driving the most revenue). Any customer that does not meet a certain revenue threshold falls into an "All Other" bucket. This will be referred to as **Key Customer 1** going forward.
+  
+ **Key customer hierarchy - level 2:** Territory (corresponding to rep groups). This will be referred to as **Key Customer 2** going forward.
+  
+ **Key customer hierarchy - level 3:** Concatanate of level 1 and level 3. Top customer and territory. This will be referred to as **Key Customer 3** going forward.
+ 
+ The forecasting base of the machine learning model is the sku at key customer 3.
+ 
+ For each key customer level, there is a corresponding sales person associated with it. The one exception is the key customer 1 All Other bucket, which the senior sales leader is traditionally responsible for.
+
+
 
 ```
 
@@ -71,7 +85,7 @@ FROM (
 							  ,[LineCode]
 							  ,[ClassCode]
 							  ,[PartNumber]
-							  ,SUM([GrossSales])		                            AS [gross]
+							  ,SUM([GrossSales])                                AS [gross]
 							  ,SUM([QtyShip])                                   AS [qtyship]
 							  ,SUM([QtyOrd])                                    AS [qtyord]	  
               FROM [FrcstFactTbl] ff
@@ -85,24 +99,24 @@ FROM (
 	) AS [masterlist]
 
 LEFT OUTER JOIN [item_lu] ilu
-	     			 ON [masterlist].[PartNumber] = [ilu].[part_number]
-LEFT OUTER JOIN [account_hierarchy_lu] ah 
-					   ON [masterlist].[AccountNumber] = [ah].[AccountNumber]
+             ON [masterlist].[PartNumber] = [ilu].[part_number]
+LEFT OUTER JOIN [account_hierarchy_lu] ah
+             ON [masterlist].[AccountNumber] = [ah].[AccountNumber]
 
 GROUP BY   [masterlist].Month
-		      ,[masterlist].Year
-		      ,[masterlist].[year_month]
-		      ,[masterlist].[PartNumber]
-		      ,[masterlist].[LineCode]
+          ,[masterlist].Year
+          ,[masterlist].[year_month]
+          ,[masterlist].[PartNumber]
+          ,[masterlist].[LineCode]
           ,[masterlist].[ClassCode]
-		      ,[ilu].[cc_type]
-		      ,[ilu].[pop_code]
-		      ,[masterlist].[AccountNumber]
-		      ,[ah].[keycust1]
-		      ,[ah].[keycust2]
-		      ,[ah].[keycust3]
-		      ,[ah].[sales1]
-		      ,[ah].[sales2]
+          ,[ilu].[cc_type]
+          ,[ilu].[pop_code]
+          ,[masterlist].[AccountNumber]
+          ,[ah].[keycust1]
+          ,[ah].[keycust2]
+          ,[ah].[keycust3]
+          ,[ah].[sales1]
+          ,[ah].[sales2]
           ,[ah].[sales3]
           
 ```
