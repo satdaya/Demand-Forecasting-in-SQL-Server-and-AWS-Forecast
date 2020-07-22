@@ -1,7 +1,11 @@
-The first step requires extracting the shipped data from the SQL Server database feeding the ERP.  Often the forecasting hierarchy will be determined by the operations and SIOP teams, and often is not in the ERP. In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A sku hierarchy.
+The first step requires extracting the shipped data from the SQL Server database feeding the ERP.  Often the forecasting hierarchy will be determined by the operations and SIOP teams, and often is not in the ERP.  
+
+In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A sku hierarchy.
 
   The first priority was obtaining both historical order and historical shipped data by unit and gross $. The company ships approximately 85,000 sku's across approximately 2,500 unique billable customers. If every customer ordered every sku, we would not to generate 212,500,000 unique forecasts for each month, or 2.55 billion forecasts for a 12 month view. This is prohibitively expensive in compute and $.  So the first task: consolidate customers into a hierarchy.  
   
+ **1. Customer Hierarchy  
+ 
  **Key customer hierarchy - level 1:** Top customers (those driving the most revenue). Any customer that does not meet a certain revenue threshold falls into an "All Other" bucket. This will be referred to as **Key Customer 1** going forward.
   
  **Key customer hierarchy - level 2:** Territory (corresponding to rep groups). This will be referred to as **Key Customer 2** going forward.
@@ -12,7 +16,21 @@ The first step requires extracting the shipped data from the SQL Server database
  
  For each key customer level, there is a corresponding sales person associated with it. The one exception is the key customer 1 All Other bucket, which the senior sales leader is traditionally responsible for.
 
+**2. Sku Level Hierarchy
 
+**Line Code** - the broadest level of a product
+
+**Class Code** - specific categories under the line code. In this case, numbers
+
+**cc_type (aka Class Code Type)** grouping the class code into easily identifiable groupings. In this case: economy, mid-grade, premium, ultra-premium.  
+  
+**pop_code** - Item velocity
+
+There are three aggregate fields in the query below:
+  
+  a. **gross** - high level dollars. Used for analysis only.  
+  b. **qtyship** - the quantity of shipped skus.  
+  c. **frcst_qty** - the base unit level measure of forecasting. qtyship does not accurately capture lost sales due to stockouts, shipping issues, etc... Quantifying lost orders can be tricky. A customer may order the same product every day until it is in stock. In this case our forecast base is the shipped quantity plus 25 % of the variance between quantity order and quantity shipped. 
 
 ```
 
@@ -120,3 +138,4 @@ GROUP BY   [masterlist].Month
           ,[ah].[sales3]
           
 ```
+
