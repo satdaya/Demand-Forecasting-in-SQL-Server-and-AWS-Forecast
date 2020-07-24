@@ -138,4 +138,34 @@ GROUP BY   [masterlist].Month
           ,[ah].[sales3]
           
 ```
+The next step involves prepping the data for AWS Forecast.
 
+```
+
+DROP TABLE IF EXISTS [s3_load_drr_ab]
+
+CREATE TABLE [s3_load_drr_ab] (
+				 [year_month] VARCHAR(10)
+				,[item_id] VARCHAR(54)
+				,[keycust3] VARCHAR(54)
+				,[frcst_qty] NUMERIC(10, 0)
+							 )
+INSERT INTO [s3_load_drr_ab] (
+                                 [year_month]
+                                ,[item_id]
+                                ,[keycust3]
+                                ,[frcst_qty]
+			     )
+SELECT  CONVERT (VARCHAR(10), [year_month], 20 ) AS [year_month]
+       ,[item_id]
+       ,[keycust3]
+       ,SUM([frcst_qty]) AS [frcst_qty]
+FROM AWS_Stage 
+WHERE [line_code] IN ('DRR')
+AND [pop_code] IN ('a', 'b')
+GROUP BY  [year_month]
+         ,[item_id
+         ,[keycust3]
+HAVING SUM([frcst_qty]) > 0
+ORDER BY [year_month]
+```
