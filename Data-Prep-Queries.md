@@ -138,7 +138,17 @@ GROUP BY   [masterlist].Month
           ,[ah].[sales3]
           
 ```
-The next step involves prepping the data for AWS Forecast.
+The next step involves prepping the data for AWS Forecast. As we will see later, it seems like 4 fields is most effective for the primary time series data.
+
+Field 1: **timestamp** AWS Forecast will only read dates in yyyy-MM-dd HH:mm:ss OR yyyy-MM-dd. In this example I will use the latter, as I am forecasting sales by month. When setting the timestamp column, I cast the datetime as VARCHAR type 20. Both DATETIME and DATETIME contain millisecond data that AWS Forecast will not read.
+
+Field 2: **item_id** The unique item identifier
+
+Field 3: **keycust3** The unique customer by territory aggregate
+
+Field 4: **demand** The historical shipped data
+
+AWS Forecast has a 100,000 forecast iteration limit. In this example, I need to partition the data into multiple sets for AWS Forecast ingestion.
 
 ```
 
@@ -149,7 +159,7 @@ CREATE TABLE [s3_load_drr_ab] (
 				,[item_id] VARCHAR(54)
 				,[keycust3] VARCHAR(54)
 				,[frcst_qty] NUMERIC(10, 0)
-							 )
+				)
 INSERT INTO [s3_load_drr_ab] (
                                  [year_month]
                                 ,[item_id]
@@ -160,9 +170,9 @@ SELECT  CONVERT (VARCHAR(10), [year_month], 20 ) AS [year_month]
        ,[item_id]
        ,[keycust3]
        ,SUM([frcst_qty]) AS [frcst_qty]
-FROM AWS_Stage 
-WHERE [line_code] IN ('DRR')
-AND [pop_code] IN ('a', 'b')
+  FROM AWS_Stage 
+ WHERE [line_code] IN ('DRR')
+   AND [pop_code] IN ('a', 'b')
 GROUP BY  [year_month]
          ,[item_id
          ,[keycust3]
