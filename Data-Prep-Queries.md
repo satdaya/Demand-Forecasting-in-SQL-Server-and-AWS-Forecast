@@ -166,16 +166,23 @@ INSERT INTO [s3_load_drr_ab] (
                                 ,[keycust3]
                                 ,[frcst_qty]
 			     )
-SELECT  CONVERT (VARCHAR(10), [year_month], 20 ) AS [year_month]
-       ,[item_id]
-       ,[keycust3]
-       ,SUM([frcst_qty]) AS [frcst_qty]
-  FROM AWS_Stage 
- WHERE [line_code] IN ('DRR')
-   AND [pop_code] IN ('a', 'b')
-GROUP BY  [year_month]
-         ,[item_id
-         ,[keycust3]
-HAVING SUM([frcst_qty]) > 0
-ORDER BY [year_month]
+SELECT  CONVERT (VARCHAR(10), a.[year_month], 20 ) AS [year_month]
+       ,a.[item_id]
+       ,a.[keycust3]
+       ,SUM ( ISNULL(a.[frcst_qty], 0) ) AS [frcst_qty]
+  FROM AWS_Stage a
+  JOIN (
+	     SELECT DISTINCT [item_id]
+	       FROM [AWS_Stage]
+	      WHERE [yr] in ('2020')
+           GROUP BY [item_id]
+         HAVING SUM ( ISNULL([frcst_qty], 0) ) >= 0 
+		) b 
+ WHERE a.[line_code] IN ('DRR')
+   AND a.[pop_code] IN ('a', 'b')
+GROUP BY  a.[year_month]
+         ,a.[item_id
+         ,a.[keycust3]
+HAVING SUM(a.[frcst_qty]) > 0
+ORDER BY a.[year_month]
 ```
