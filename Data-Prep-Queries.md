@@ -138,7 +138,7 @@ GROUP BY   [masterlist].Month
           ,[ah].[sales3]
           
 ```
-The next step involves prepping the data for AWS Forecast. As we will see later, it seems like 4 fields is most effective for the primary time series data.
+The next step involves prepping the data for AWS Forecast. 4 fields seems  most effective for the primary time series data.
 
 Field 1: **timestamp** AWS Forecast will only read dates in yyyy-MM-dd HH:mm:ss OR yyyy-MM-dd. In this example I will use the latter, as I am forecasting sales by month. When setting the timestamp column, I cast the datetime as VARCHAR type 20. Both DATETIME and DATETIME contain millisecond data that AWS Forecast will not read.
 
