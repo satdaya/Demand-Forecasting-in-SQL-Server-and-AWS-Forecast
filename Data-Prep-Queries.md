@@ -178,6 +178,7 @@ SELECT  CONVERT (VARCHAR(10), a.[year_month], 20 ) AS [year_month]
            GROUP BY [item_id]
          HAVING SUM ( ISNULL([frcst_qty], 0) ) >= 0 
 		) b 
+    ON a.[item_id] = b.[item_id]
  WHERE a.[line_code] IN ('DRR')
    AND a.[pop_code] IN ('a', 'b')
 GROUP BY  a.[year_month]
