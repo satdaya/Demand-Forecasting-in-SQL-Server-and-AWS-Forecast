@@ -1,6 +1,6 @@
 **Create Historical Data for Load**
 
-``` DROP TABLE IF EXISTS [analysis_prophet_full_6.16.2020]
+``` DROP TABLE IF EXISTS [analysis_historical]
 
 CREATE TABLE [analysis_historical](
 									  
@@ -61,3 +61,25 @@ FROM [AWS_Stage]
 			  ,[keycust3]
 	 ORDER BY [year_month]
  ```
+```
+ALTER TABLE [analysis_historical]
+		ADD [date_use] VARCHAR(11)
+ALTER TABLE [analysis_historical]
+		ADD [mnth] INT
+ALTER TABLE [analysis_historical]
+		ADD [yr] INT
+ALTER TABLE [analysis_historical]
+		ADD [gross25] NUMERIC(10, 2)
+ALTER TABLE [analysis_historical]
+		ADD [gross38] NUMERIC(10, 2)
+ALTER TABLE [analysis_historical]
+		ADD [gross50] NUMERIC(10, 2)
+ALTER TABLE [analysis_historical]
+		ADD [gross62] NUMERIC(10, 2)
+ALTER TABLE [analysis_historical]
+		ADD [gross75] NUMERIC(10, 2)
+ALTER TABLE [analysis_historical]
+		ADD [measure] VARCHAR(54)
+ALTER TABLE[analysis_historical]
+		ADD [measure2] VARCHAR(54) 
+```
