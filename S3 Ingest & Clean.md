@@ -61,6 +61,8 @@ FROM [AWS_Stage]
 			  ,[keycust3]
 	 ORDER BY [year_month]
  ```
+**Add Columns to Historical Data** 
+ 
 ```
 ALTER TABLE [analysis_historical]
 		ADD [date_use] VARCHAR(11)
