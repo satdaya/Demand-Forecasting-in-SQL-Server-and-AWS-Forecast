@@ -156,7 +156,7 @@ UPDATE [analysis_historical]
   ```
   
  **Update Measure**
-`` 
+```
  ALTER TABLE [analysis_historical]
 		ADD [measure] VARCHAR(54)
 ALTER TABLE [analysis_historical]
@@ -167,4 +167,4 @@ UPDATE [analysis_historical]
 
 UPDATE [analysis_historical]
    SET [measure2] = CONCAT([yr],[measure]); 
-``
+```
