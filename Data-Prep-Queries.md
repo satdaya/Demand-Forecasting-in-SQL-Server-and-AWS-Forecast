@@ -187,3 +187,67 @@ GROUP BY  a.[year_month]
 HAVING SUM(a.[frcst_qty]) > 0
 ORDER BY a.[year_month]
 ```
+Sometimes you need to smooth out outlier months. In this example, April 2020 shipped approximately half of a normal month due to COVID 19 pandemic. The query below removes April 2020 and replaces it with an average of the prior 3 months.
+
+```
+DROP TABLE IF EXISTS [s3_load_cte_drr_a]
+
+CREATE TABLE [s3_load_cte_drr_a] (
+				 [year_month] VARCHAR(10)
+				,[item_id] VARCHAR(54)
+				,[keycust3] VARCHAR(54)
+				,[frcst_qty] NUMERIC(10, 0)
+				) ;
+
+WITH items_cte([item_id])
+     AS (SELECT [item_id]
+         FROM [AWS_Stage]
+         WHERE [yr] IN('2020')
+         GROUP BY [item_id]
+         HAVING SUM(ISNULL([frcst_qty], 0)) >= 0)
+		 ,
+     ym_cte([year_month]
+            ,[item_id]
+            ,[keycust3] 
+            ,[frcst_qty])
+     AS (SELECT CONVERT(VARCHAR(10), a.[year_month], 20) 
+                ,a.[item_id] 
+                ,a.[keycust3]
+                ,SUM(ISNULL(a.[frcst_qty], 0))
+         FROM [AWS_Stage] a
+              JOIN items_cte b 
+			    ON a.[item_id] = b.[item_id]
+		WHERE [line_code] IN ('DRR')
+		  AND [pop_code] IN ('a')
+		  AND [year_month] NOT IN ('2020-08-01')
+         GROUP BY  a.[year_month]
+                  ,a.[item_id] 
+                  ,a.[keycust3])
+				  ,
+  ym_prior_3_avg_cte([year_month] 
+                        ,[item_id]
+                        ,[keycust3] 
+                        ,[frcst_qty])
+     AS (SELECT '2020-04-01' 
+                ,[item_id] 
+                ,[keycust3]
+				--,AVG([frcst_qty]) -- Avg does not work
+                ,(SUM ([frcst_qty]) / 3 )
+         FROM ym_cte
+         WHERE [year_month] IN ('2020-01-01', '2020-02-01', '2020-03-01')
+         GROUP BY [year_month]
+		          ,[item_id]
+                  ,[keycust3])
+     INSERT INTO [s3_load_cte_drr_a]
+     ( [year_month]  
+      ,[item_id]
+      ,[keycust3] 
+      ,[frcst_qty]
+     )
+            SELECT *
+            FROM ym_cte
+            WHERE [year_month] <> '2020-04-01'
+            UNION ALL
+            SELECT *
+            FROM ym_prior_3_avg_cte;
+```
