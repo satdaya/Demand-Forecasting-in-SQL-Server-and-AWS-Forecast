@@ -205,7 +205,7 @@ WITH items_cte([item_id])
          WHERE [yr] IN('2020')
          GROUP BY [item_id]
          HAVING SUM(ISNULL([frcst_qty], 0)) >= 0)
-		 ,
+	,
      ym_cte([year_month]
             ,[item_id]
             ,[keycust3] 
@@ -216,27 +216,27 @@ WITH items_cte([item_id])
                 ,SUM(ISNULL(a.[frcst_qty], 0))
          FROM [AWS_Stage] a
               JOIN items_cte b 
-			    ON a.[item_id] = b.[item_id]
+                ON a.[item_id] = b.[item_id]
 		WHERE [line_code] IN ('DRR')
 		  AND [pop_code] IN ('a')
 		  AND [year_month] NOT IN ('2020-08-01')
          GROUP BY  a.[year_month]
                   ,a.[item_id] 
                   ,a.[keycust3])
-				  ,
+                  ,
   ym_prior_3_avg_cte([year_month] 
-                        ,[item_id]
-                        ,[keycust3] 
-                        ,[frcst_qty])
+                     ,[item_id]
+                     ,[keycust3] 
+                     ,[frcst_qty])
      AS (SELECT '2020-04-01' 
                 ,[item_id] 
                 ,[keycust3]
-				--,AVG([frcst_qty]) -- Avg does not work
+                --,AVG([frcst_qty]) -- Avg does not work
                 ,(SUM ([frcst_qty]) / 3 )
          FROM ym_cte
          WHERE [year_month] IN ('2020-01-01', '2020-02-01', '2020-03-01')
          GROUP BY [year_month]
-		          ,[item_id]
+                  ,[item_id]
                   ,[keycust3])
      INSERT INTO [s3_load_cte_drr_a]
      ( [year_month]  
