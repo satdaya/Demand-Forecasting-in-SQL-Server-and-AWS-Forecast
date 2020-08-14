@@ -10,7 +10,7 @@ When dealing with multiple partitioned dataset, it is important to get naming co
      4. **Ec2 capacity**  
      5. **Work Force**  
      6. **Web Traffic**  
-     7. **Metrics** - forecasting financieal revenue metrics such as revenue, sales, cashflow.
+     7. **Metrics** - forecasting financial revenue metrics such as revenue, sales, cashflow.
 
 **2. Create target time series data set group** - Example of partitioned set name: 'dsnm_drr_ab_7_10_v2'  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- The time interval specification is here. In this example, I am forecasting in monthly intervals.  
@@ -74,3 +74,12 @@ Below is the JSON for the item metadata used in this project.
 
         ]
       }
+      
+The next step involves training a predictor.  Example of a predictor name: 'pred_drr_ab_7_10_v2'.
+
+You can set your forecast horizon here. Keep in mind that the your forecast is maxed out at 1/3 of your historical dataset.
+
+It is here where you choose your algorithm. I settled on Prophet. ARIMA and NPTS were giving me static flat forecasts with minimal seasonality. DEEP AR+ was generating a progressive decay curve (possibly as a result of a large). Prophet most accurately caught the seasonal curves.
+
+You also set the forecast dimension. For my project, it is the Key Customer 3 level.
+
