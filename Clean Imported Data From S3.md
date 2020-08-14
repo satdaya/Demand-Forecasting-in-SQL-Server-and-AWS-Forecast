@@ -42,23 +42,23 @@ SELECT
     ,[yr]
     ,[mnth]
     ,[item_id]
-		,[keycust3]
+    ,[keycust3]
     ,SUM([frcst_qty])
     ,SUM([frcst_qty])
     ,SUM([frcst_qty])
-		,SUM([frcst_qty])
     ,SUM([frcst_qty])
-		,SUM([gross])
+    ,SUM([frcst_qty])
+    ,SUM([gross])
     ,SUM([gross])
     ,SUM([gross])
     ,SUM([gross])
     ,SUM([gross])
 FROM [AWS_Stage] 
 	 GROUP BY  [year_month]
-			  ,[yr]
-			  ,[mnth]
-			  ,[item_id]
-			  ,[keycust3]
+		   ,[yr]
+		   ,[mnth]
+		   ,[item_id]
+		   ,[keycust3]
 	 ORDER BY [year_month]
  ```
 **Add Columns to Historical Data** 
@@ -111,10 +111,6 @@ UPDATE [analysis_historical]
 
 UPDATE [analysis_historical]
    SET [p75] = CASE WHEN [p75] < 0 THEN 0 ELSE [p75] END ;
-
-/*UPDATE [analysis_historical]
-   SET [item_id] = RIGHT(item_id, LEN(item_id) - 4)
-				   WHERE LEFT([item_id], 3) = 'fvp'*/
 
 UPDATE [analysis_historical]
    SET [gross25] = [analysis_historical].[p25] * [50%_price].[50%_jobber]
