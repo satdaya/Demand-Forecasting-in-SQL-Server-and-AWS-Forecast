@@ -2,7 +2,7 @@ The first step requires extracting the shipped data from the SQL Server database
 
 In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A sku hierarchy.
 
-  The first priority was obtaining both historical order and historical shipped data by unit and gross $. The company ships approximately 85,000 sku's across approximately 2,500 unique billable customers. If every customer ordered every sku, we would not to generate 212,500,000 unique forecasts for each month, or 2.55 billion forecasts for a 12 month view. This is prohibitively expensive in compute and $.  So the first task: consolidate customers into a hierarchy.  
+  The first priority was obtaining both historical order and historical shipped data by unit and gross $. The company this was sytem was designed for ships approximately 85,000 sku's across approximately 2,500 unique billable customers. If every customer ordered every sku, that would be 212,500,000 unique forecasts each month, or 2.55 billion forecasts for a 12 month view. This is prohibitively expensive in compute and $.  So the first task: consolidate customers into a hierarchy.  
   
  **1. Customer Hierarchy  
  
@@ -14,13 +14,13 @@ In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A s
  
  The forecasting base of the machine learning model is the sku at key customer 3.
  
- For each key customer level, there is a corresponding sales person associated with it. The one exception is the key customer 1 All Other bucket, which the senior sales leader is traditionally responsible for.
+ For each key customer level, there is a corresponding sales person associated with it. The one exception is the Key Customer 1 All Other bucket.  The most senior sales leader is traditionally responsible for this bucket.
 
 **2. Sku Level Hierarchy
 
 **Line Code** - the broadest level of a product
 
-**Class Code** - specific categories under the line code. In this case, numbers
+**Class Code** - specific categories under the line code.
 
 **cc_type (aka Class Code Type)** grouping the class code into easily identifiable groupings. In this case: economy, mid-grade, premium, ultra-premium.  
   
@@ -138,7 +138,7 @@ GROUP BY   [masterlist].Month
           ,[ah].[sales3]
           
 ```
-The next step involves prepping the data for AWS Forecast. 4 fields seems  most effective for the primary time series data.
+The next step involves prepping the data for AWS Forecast ingestion. 4 fields seems most effective for the primary time series data.
 
 Field 1: **timestamp** AWS Forecast will only read dates in yyyy-MM-dd HH:mm:ss OR yyyy-MM-dd. In this example I will use the latter, as I am forecasting sales by month. When setting the timestamp column, I cast the datetime as VARCHAR type 20. Both DATETIME and DATETIME contain millisecond data that AWS Forecast will not read.
 
