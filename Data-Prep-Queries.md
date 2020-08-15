@@ -54,6 +54,7 @@ CREATE TABLE [AWS_Stage] (
 						,[gross]        NUMERIC(10, 2)
 						,[qtyship]      NUMERIC(10, 2)
 						,[frcst_qty]    NUMERIC(10, 2)
+						,[qtyord]       NUMERIC(10, 2)
 						) 
 						
 INSERT INTO [AWS_Stage] (
@@ -74,6 +75,7 @@ INSERT INTO [AWS_Stage] (
 						,[gross]
 						,[qtyship]
 						,[frcst_qty]
+						,[qtyord]
 						)
 SELECT 
          [masterlist].[Month]                                                           AS [mnth]
@@ -105,6 +107,7 @@ FROM (
 							  ,[PartNumber]
 							  ,SUM([GrossSales])                                AS [gross]
 							  ,SUM([QtyShip])                                   AS [qtyship]
+							  ,SUM([masterlist].[QtyOrd])                       AS [QtyOrd]
 							  ,SUM([QtyOrd])                                    AS [qtyord]	  
               FROM [FrcstFactTbl] ff
               GROUP BY   [AccountNumber]
