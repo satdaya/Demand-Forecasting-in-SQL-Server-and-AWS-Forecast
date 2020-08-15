@@ -3,8 +3,8 @@ The first step requires extracting the shipped data from the SQL Server database
 In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A sku hierarchy.
 
   The first priority was obtaining both historical order and historical shipped data by unit and gross $. The company this was sytem was designed for ships approximately 85,000 sku's across approximately 2,500 unique billable customers. If every customer ordered every sku, that would be 212,500,000 unique forecasts each month, or 2.55 billion forecasts for a 12 month view. This is prohibitively expensive in compute and $.  So the first task: consolidate customers into a hierarchy.  
-  
- **1. Customer Hierarchy  
+   
+ **1. Customer Hierarchy**
  
  **Key customer hierarchy - level 1:** Top customers (those driving the most revenue). Any customer that does not meet a certain revenue threshold falls into an "All Other" bucket. This will be referred to as **Key Customer 1** going forward.
   
@@ -16,7 +16,7 @@ In this particular case, I have two fact tables. 1. A customer hierarchy. 2. A s
  
  For each key customer level, there is a corresponding sales person associated with it. The one exception is the Key Customer 1 All Other bucket.  The most senior sales leader is traditionally responsible for this bucket.
 
-**2. Sku Level Hierarchy
+**2. Sku Level Hierarchy**
 
 **Line Code** - the broadest level of a product
 
