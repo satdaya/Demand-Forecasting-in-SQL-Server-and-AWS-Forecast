@@ -87,7 +87,7 @@ Backtest window: 1 (default)
 
 Backtest window offset: 10 (default)
 
-**4. Forecast Generation** Example of a predictor name: 'frcst_drr_ab_7_10_v2'  
+**5. Forecast Generation** Example of a predictor name: 'frcst_drr_ab_7_10_v2'  
 
 Choose the predictor (trained in the previous step).  
 
