@@ -75,11 +75,20 @@ Below is the JSON for the item metadata used in this project.
         ]
       }
       
-The next step involves training a predictor.  Example of a predictor name: 'pred_drr_ab_7_10_v2'.
+**4. Train a Predictor** - Example of a predictor name: 'pred_drr_ab_7_10_v2'.
 
-You can set your forecast horizon here. Keep in mind that the your forecast is maxed out at 1/3 of your historical dataset.
+Set your forecast horizon here. Keep in mind that the your forecast is maxed out at 1/3 of your historical dataset.
 
-It is here where you choose your algorithm. I settled on Prophet. ARIMA and NPTS were giving me static flat forecasts with minimal seasonality. DEEP AR+ was generating a progressive decay curve (possibly as a result of a large). Prophet most accurately caught the seasonal curves.
+It is here where you choose your algorithm. I settled on Prophet. ARIMA and NPTS were giving me static flat forecasts with minimal seasonality. DEEP AR+ was generating a progressive decay curve (possibly as a result of the outlier April). Prophet most accurately caught the seasonal curves.
 
 You also set the forecast dimension. For my project, it is the Key Customer 3 level.
 
+Backtest window: 1 (default)
+
+Backtest window offset: 10 (default)
+
+**4. Forecast Generation** Example of a predictor name: 'frcst_drr_ab_7_10_v2'  
+
+Choose the predictor (trained in the previous step).  
+
+Choose the Quantiles you want to forecast. Quantiles determine the % of time the forecast is predicted to exceed the true value. For example - a quantile forecast of .50 predicts that the forecast will exceed the true value 50% of the time. AWS will default .10, .50, .90. These 3 forecasts cover 80% of the confidence interval. 
