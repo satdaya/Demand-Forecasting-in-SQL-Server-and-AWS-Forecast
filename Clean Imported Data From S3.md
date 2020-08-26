@@ -1,6 +1,29 @@
+ The AWS exports are broken into smaller pieces. I download the individual forecasts, and aggregate them using the following Python script to concatanate the multiple files:
+ 
+ ```
+ 
+import pandas as pd
+import glob
+
+path = r''
+all_files = glob.glob(path +"/*.csv")
+
+li = []
+
+for filename in all_files:
+    df = pd.read_csv(filename, index_col=None, header=0)
+    li.append(df)
+
+frame = pd.concat(li, axis=0, ignore_index=True)
+frame.to_csv(r'')
+
+
+ ```
+
 **Create Historical Data for Load**
 
-``` DROP TABLE IF EXISTS [analysis_historical]
+``` DROP TABLE IF EXISTS [hist_analysis_Aug_Sku_v4];
+
 
 CREATE TABLE [analysis_historical](
 									  
@@ -9,16 +32,18 @@ CREATE TABLE [analysis_historical](
 									 ,[mnth] INT
 									 ,[item_id] VARCHAR(54)
 									 ,[keycust3] VARCHAR(54)
-									 ,[p40] FLOAT
+									 ,[p12] FLOAT
+									 ,[p25] FLOAT
+									 ,[p38] FLOAT
 									 ,[p50] FLOAT
-									 ,[p60] FLOAT
-									 ,[p70] FLOAT
-									 ,[p80] FLOAT
-									 ,[gross_p40] FLOAT
+									 ,[p62] FLOAT
+									 ,[gross_p12] FLOAT
+									 ,[gross_p25] FLOAT
+									 ,[gross_p38] FLOAT
 									 ,[gross_p50] FLOAT
-									 ,[gross_p60] FLOAT
-									 ,[gross_p70] FLOAT
-									 ,[gross_p80] FLOAT
+									 ,[gross_p62] FLOAT
+									 ,[qtyord] FLOAT
+									 ,[qtyship] FLOAT
 									 )
 INSERT INTO [analysis_historical](
 									 [date_use]
@@ -26,40 +51,45 @@ INSERT INTO [analysis_historical](
 									 ,[mnth]
 									 ,[item_id]
 									 ,[keycust3]
-									 ,[p40]
+									 ,[p12]
+									 ,[p25]
+									 ,[p38]
 									 ,[p50]
-									 ,[p60]
-									 ,[p70]
-									 ,[p80]  
-									 ,[gross_p40]
+									 ,[p62]  
+									 ,[gross_p12]
+									 ,[gross_p25]
+									 ,[gross_p38]
 									 ,[gross_p50]
-									 ,[gross_p60]
-									 ,[gross_p70]
-									 ,[gross_p80]
+									 ,[gross_p62]
+									 ,[qtyord]
+									 ,[qtyship]
 									)
 SELECT  
-     [year_month]
-    ,[yr]
-    ,[mnth]
-    ,[item_id]
-    ,[keycust3]
-    ,SUM([frcst_qty])
-    ,SUM([frcst_qty])
-    ,SUM([frcst_qty])
-    ,SUM([frcst_qty])
-    ,SUM([frcst_qty])
-    ,SUM([gross])
-    ,SUM([gross])
-    ,SUM([gross])
-    ,SUM([gross])
-    ,SUM([gross])
+		 [year_month]
+		,[yr]
+		,[mnth]
+		,[item_id]
+		,[keycust3]
+	        ,SUM([frcst_qty])
+	        ,SUM([frcst_qty])
+	        ,SUM([frcst_qty])
+		,SUM([frcst_qty])
+	        ,SUM([frcst_qty])
+		,SUM([gross])
+	        ,SUM([gross])
+	        ,SUM([gross])
+	        ,SUM([gross])
+	        ,SUM([gross])
+		,SUM([qtyord])
+		,SUM([qtyship])
 FROM [AWS_Stage] 
-	 GROUP BY  [year_month]
-		   ,[yr]
-		   ,[mnth]
-		   ,[item_id]
-		   ,[keycust3]
-	 ORDER BY [year_month]
+GROUP BY  [year_month]
+	  ,[yr]
+	  ,[mnth]
+	  ,[item_id]
+	  ,[keycust3]
+ORDER BY [year_month]
+	 
  ```
 **Add Columns to Historical Data** 
  
@@ -71,96 +101,59 @@ ALTER TABLE [analysis_historical]
 ALTER TABLE [analysis_historical]
 		ADD [yr] INT
 ALTER TABLE [analysis_historical]
-		ADD [gross25] NUMERIC(10, 2)
-ALTER TABLE [analysis_historical]
-		ADD [gross38] NUMERIC(10, 2)
-ALTER TABLE [analysis_historical]
-		ADD [gross50] NUMERIC(10, 2)
-ALTER TABLE [analysis_historical]
-		ADD [gross62] NUMERIC(10, 2)
-ALTER TABLE [analysis_historical]
-		ADD [gross75] NUMERIC(10, 2)
-ALTER TABLE [analysis_historical]
 		ADD [measure] VARCHAR(54)
-ALTER TABLE[analysis_historical]
-		ADD [measure2] VARCHAR(54) 
+ALTER TABLE [analysis_historical]
+		ADD [measure2] VARCHAR(54)	 ;
+
+ALTER TABLE [analysis_historical]
+		ADD [gross_p12] NUMERIC(10, 2);
+ALTER TABLE [analysis_historical]
+		ADD [gross_p25] NUMERIC(10, 2);
+ALTER TABLE [analysis_historical]
+		ADD [gross_p38] NUMERIC(10, 2);
+ALTER TABLE [analysis_historical]
+		ADD [gross_p50] NUMERIC(10, 2);
+ALTER TABLE [analysis_historical]
+		ADD [gross_p62] NUMERIC(10, 2)
 ```
-**Update Added Columns**
+**Insert Forecast Data **
 
 ```
-UPDATE [analysis_historical]
-   SET [date_use] = DATEADD(dd, 1, [date]) ;
+ INSERT INTO [hist_analysis_Aug_Sku_v4]
+			([date_use]
+			,[mnth]
+			,[yr]
+			,[item_id]
+			,[keycust3]
+			,[p12]
+			,[p25]
+			,[p38]
+			,[p50]
+			,[p62]
+			,[gross_p12]
+			,[gross_p25]
+			,[gross_p38]
+			,[gross_p50]
+			,[gross_p62]
 
-UPDATE [analysis_historical]
-   SET [mnth] = MONTH([date_use]);
-
-UPDATE [analysis_historical]
-   SET [yr] = YEAR([date_use]); 
-
-UPDATE [analysis_historical]
-   SET [p25] = CASE WHEN [p25] < 0 THEN 0 ELSE [p25] END ;
-
-UPDATE [analysis_historical]
-   SET [p38] = CASE WHEN [p38] < 0 THEN 0 ELSE [p38] END ;
-
-UPDATE [analysis_historical]
-   SET [p50] = CASE WHEN [p50] < 0 THEN 0 ELSE [p50] END ;
-
-UPDATE [analysis_historical]
-   SET [p62] = CASE WHEN [p62] < 0 THEN 0 ELSE [p62] END ;
-
-UPDATE [analysis_historical]
-   SET [p75] = CASE WHEN [p75] < 0 THEN 0 ELSE [p75] END ;
-
-UPDATE [analysis_historical]
-   SET [gross25] = [analysis_historical].[p25] * [50%_price].[50%_jobber]
-					 FROM [analysis_historical]
-					 JOIN [50%_price]
-					   ON [analysis_historical].[item_id] = [50%_price].[item_id];
-
-UPDATE [analysis_historical]
-   SET [gross38] = [analysis_historical].[p38] * [50%_price].[50%_jobber]
-					 FROM [analysis_historical]
-					 JOIN [50%_price]
-					ON  [analysis_historical].[item_id] = [50%_price].[item_id];
-
-UPDATE [analysis_historical]
-   SET [gross50] = [analysis_historical].[p50] * [50%_price].[50%_jobber]
-					 FROM [analysis_historical]
-					 JOIN [50%_price]
-					ON  [analysis_historical].[item_id] = [50%_price].[item_id];
-
-UPDATE [analysis_historical]
-   SET [gross62] = [analysis_historical].[p62] * [50%_price].[50%_jobber]
-					 FROM [analysis_historical]
-					 JOIN [50%_price]
-					ON  [analysis_historical].[item_id] = [50%_price].[item_id];
-					
-
-UPDATE [analysis_historical]
-   SET [gross75] = [analysis_historical].[p75] * [50%_price].[50%_jobber]
-					 FROM [analysis_historical]
-					 JOIN [50%_price]
-					ON  [analysis_historical].[item_id] = [50%_price].[item_id];
-
-
-UPDATE [analysis_historical]
-   SET [measure] = 'forecast';
-
-UPDATE [analysis_historical]
-   SET [measure2] = CONCAT([yr],[measure]);
+			)
+SELECT   [date_use]
+		,[mnth]
+		,[yr]
+		,[item_id]
+		,[keycust3]
+		,[p12]
+		,[p25]
+		,[p38]
+		,[p50]
+		,[p62]
+		,[gross_p12]
+		,[gross_p25]
+		,[gross_p38]
+		,[gross_p50]
+		,[gross_p62]
+		
+FROM [8_12_2020_Frcst_Run_Expt]
   ```
   
- **Update Measure**
-```
- ALTER TABLE [analysis_historical]
-		ADD [measure] VARCHAR(54)
-ALTER TABLE [analysis_historical]
-		ADD [measure2] VARCHAR(54)
 
-UPDATE [analysis_historical]
-   SET [measure] = 'actuals';
-
-UPDATE [analysis_historical]
-   SET [measure2] = CONCAT([yr],[measure]); 
-```
