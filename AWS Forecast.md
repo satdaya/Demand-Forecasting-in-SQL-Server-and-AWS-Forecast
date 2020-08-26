@@ -96,5 +96,5 @@ Choose the Quantiles you want to forecast. Quantiles determine the % of time the
 When the forecast is generated, create an export to migrate that forecast to an S3 bucket.  
 
 NB - delete all of your resource once done, for the following reasons:  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a. AWS will charge you to store forecasts
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; a. AWS will charge you to store forecasts  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b. You can only store 10 forecasts at a time.
