@@ -91,4 +91,10 @@ Backtest window offset: 10 (default)
 
 Choose the predictor (trained in the previous step).  
 
-Choose the Quantiles you want to forecast. Quantiles determine the % of time the forecast is predicted to exceed the true value. For example - a quantile forecast of .50 predicts that the forecast will exceed the true value 50% of the time. AWS will default .10, .50, .90. These 3 forecasts cover 80% of the confidence interval. 
+Choose the Quantiles you want to forecast. Quantiles determine the % of time the forecast is predicted to exceed the true value. For example - a quantile forecast of .50 predicts that the forecast will exceed the true value 50% of the time. AWS will default .10, .50, .90. These 3 forecasts cover 80% of the confidence interval.  
+
+When the forecast is generated, create an export to migrate that forecast to an S3 bucket.  
+
+NB - delete all of your resource once done, for the following reasons:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp a. AWS will charge you to store forecasts
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp b. You can only store 10 forecasts at a time.
