@@ -26,7 +26,7 @@ CREATE TABLE [aws_base]
   ,[sales2]                VARCHAR(54)
   ,[sales3]                VARCHAR(54)
   ,[sales4]                VARCHAR(54)
-  ,[gross]                 NUMERIC(10, 2)
+  ,[gross]                 NUMERIC(18, 2)
   ,[qtyship]               INT
   ,[qtyord]                INT
   ,[qtyord_neg_rem]        INT
@@ -104,15 +104,16 @@ WITH [cte_unconsolidated_dates] (
      ( SUM([FrcstFactTbl].[QtyOrdNegRem]) 
         - 
        SUM([FrcstFactTbl].[QtyShipNegRem])
-     )                                                                 AS [Forecast Qty]
+     ) * 0.25                                                          AS [Forecast Qty]
 	   
+			   
 
     FROM [FrcstFactTbl]
-    LEFT OUTER JOIN [item_lu] ilu
+    LEFT JOIN [item_lu] ilu
       ON [FrcstFactTbl].[PartNumber] = [ilu].[part_number]
-    LEFT OUTER JOIN [account_hierarchy_lu_dec_20] ah 
+    LEFT JOIN [account_hierarchy_lu_dec_20] ah 
       ON [FrcstFactTbl].[AccountNumber] = [ah].[AccountNumber]
-    LEFT OUTER JOIN [pop_codes_12.4.2020] pc
+    LEFT JOIN [pop_codes_12.4.2020] pc
       ON [FrcstFactTbl].[PartNumber] = [pc].[part_number]
 
     GROUP BY
