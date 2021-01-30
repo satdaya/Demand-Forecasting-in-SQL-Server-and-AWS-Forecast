@@ -1,6 +1,7 @@
-DROP TABLE IF EXISTS [s3_load_no_partition];
+DROP TABLE IF EXISTS [s3_load_smooth_lost_sales];
 
-CREATE TABLE [s3_load_no_partition] (
+CREATE TABLE [s3_load_smooth_lost_sales]
+  (
    [year_month]   VARCHAR(10)
   ,[item_id]      VARCHAR(54)
   ,[top_customer] VARCHAR(54)
@@ -22,6 +23,7 @@ WITH
 ,
                 
 [items_cte]
+  --eliminate all sku's that have not shipped within the last 6 months
   (
     [item_id]
    ,[top_customer] 
@@ -57,7 +59,10 @@ WITH
   (  
     [year_month]
    ,[item_id]
-   ,[top_customer] 
+   ,[top_customer]
+   ,[qtyord]
+   ,[qtyship]
+   ,[lost_sales]
    ,[frcst_qty])
   AS 
    (
@@ -65,6 +70,9 @@ WITH
        CONVERT(VARCHAR(10), [aws_base].[year_month_date], 20) 
       ,[aws_base].[item_id] 
       ,[items_cte].[top_customer]
+      ,SUM([aws_base].[qtyord])
+      ,SUM([aws_base].[qtyship])
+      ,SUM([aws_base].[qtyord]) - SUM([aws_base].[qtyship])
       ,CASE WHEN SUM(ISNULL([aws_base].[frcst_qty], 0)) <= 0
             THEN 0 ELSE SUM(ISNULL([aws_base].[frcst_qty], 0))
             END
@@ -86,10 +94,14 @@ WITH
 ,
 
 [cte_metrics]
+  
   ( 
     [year_month]
    ,[item_id]
    ,[top_customer]
+   ,[qty_ord]
+   ,[qty_ship]
+   ,[lost_sales]
    ,[sum_frcst_qty]
    ,[avg_frcst_qty]
    ,[stddev_frcst_qty]
@@ -100,7 +112,10 @@ WITH
        [year_month]
       ,[item_id]
       ,[top_customer]
-      ,SUM([frcst_qty]) AS [sum_frcst_qty]
+      ,SUM([qtyord])
+      ,SUM([qtyship])
+      ,( SUM([qtyord]) - SUM([qtyship]) )
+      ,SUM( [frcst_qty]) AS [sum_frcst_qty]
       ,AVG( SUM([frcst_qty]) ) OVER ( PARTITION BY [item_id], [top_customer] ) AS [avg_frcst_qty]
       ,STDEV (SUM([frcst_qty]) ) OVER ( PARTITION BY [item_id], [top_customer] ) AS [stddev_frcst_qty]
     FROM [ym_cte]
@@ -112,6 +127,7 @@ WITH
 ,
 
 [ym_prior_3_avg_cte]
+   -- replace April 2020 (sales dropped in half do to Covid) with an average of the previous three months
    (
      [year_month] 
     ,[item_id]
@@ -139,7 +155,7 @@ WITH
      ,[item_id]
      ,[top_customer]  
      ,[frcst_qty]
-     )
+     )  
   AS
    (  
 SELECT
@@ -147,12 +163,17 @@ SELECT
   ,[ym_cte].[item_id]
   ,[ym_cte].[top_customer]
    --,SUM([cte_metrics].[sum_frcst_qty])
-  ,CASE WHEN 
-     ABS ( SUM([cte_metrics].[sum_frcst_qty]) - SUM([cte_metrics].[avg_frcst_qty]) ) 
-       > 
-     ABS ( SUM([cte_metrics].[stddev_frcst_qty]) * 3 )
-     THEN SUM([cte_metrics].[avg_frcst_qty])
-     ELSE SUM([cte_metrics].[sum_frcst_qty]) END
+   --prevent reorders (echo) from being too prominent in the forecsat
+  ,CASE WHEN SUM([cte_metrics].[lost_sales]) > ( SUM([cte_metrics].[qty_ship]) * 1.5)
+        THEN SUM([cte_metrics].[avg_frcst_qty])
+        ELSE
+   -- ensure that big fill orders (unlikely to repeat) are not over stated
+		   CASE WHEN ABS ( SUM([cte_metrics].[sum_frcst_qty]) - SUM([cte_metrics].[avg_frcst_qty]) ) 
+                      > 
+                     ABS ( SUM([cte_metrics].[stddev_frcst_qty]) * 3 )
+                THEN SUM([cte_metrics].[avg_frcst_qty])
+                ELSE SUM([cte_metrics].[sum_frcst_qty]) END
+        END
 FROM [ym_cte]
 JOIN [cte_metrics]
   ON [ym_cte].[year_month] = [cte_metrics].[year_month]
@@ -171,7 +192,7 @@ FROM [ym_prior_3_avg_cte]
 )
 
 
-INSERT INTO [s3_load_no_partition]
+INSERT INTO [s3_load_smooth_lost_sales]
     ( [year_month]  
      ,[item_id]
      ,[top_customer]  
