@@ -1,4 +1,4 @@
-Now that we have the historical and forecast data merged and standardized, we can decide upon a forecast. Recall that I generated 5 quantile forecasts. In this example, those were p62, p50, p38, p25, p12. From those, we have to choose one:  
+Now that we have the historical and forecast data merged and standardized, we can decide upon a forecast. Recall that I generated 5 quantile forecasts. In this example, those were p20, p35, p50, p62, p80. From those, we have to choose one:  
 
 For actuals, set both the units and the gross $ to historicals. Since actuals are spread across each quantile, just pick any.  
 
