@@ -16,4 +16,5 @@ UPDATE [analysis_historical]
                       JOIN [price]
                       ON [analysis_historical] .[item_id] = [price].[item_id]
                       WHERE [measure] IN ('forecast');
+		      
 					                      
