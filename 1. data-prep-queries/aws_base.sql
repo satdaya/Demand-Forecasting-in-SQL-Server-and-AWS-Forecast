@@ -67,8 +67,9 @@ WITH [cte_unconsolidated_dates] (
      ( SUM([FrcstFactTbl].[QtyOrdNegRem]) 
         - 
        SUM([FrcstFactTbl].[QtyShipNegRem])
+     )
 	   * 0.25
-     )                                                                 AS [Forecast Qty]
+                                                                       AS [Forecast Qty]
 	   
 
     FROM [FrcstFactTbl]
